@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quant Data Fetcher — Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ============ TAB NAVIGATION ============ -->
+<nav class="tab-nav">
+  <button class="tab-nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+  <button class="tab-nav-btn" data-tab="markdown" onclick="switchTab('markdown')">Raw Data (Markdown)</button>
+</nav>
+
+<!-- ============ LOADING OVERLAY ============ -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Fetching from 9 data sources...</div>
+  <div class="loading-progress" id="loading-progress"></div>
+</div>
+
+<!-- ==================== TAB: DASHBOARD ==================== -->
+<div class="tab-content" id="tab-dashboard">
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo">Quant Data Fetcher<span class="version">v2.1</span></h1>
+      <span class="status-dot" id="status-dot"></span>
+    </div>
+    <div class="header-center">
+      <span id="fetch-ts">--</span>
+      <span class="cache-badge" id="cache-badge">--</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-refresh" id="btn-refresh" onclick="forceRefresh()">Refresh</button>
+      <span class="countdown" id="countdown">60s</span>
+    </div>
+  </header>
+
+  <!-- TICKER CARDS -->
+  <section class="section" id="section-tickers">
+    <h2 class="section-title">Main Tickers</h2>
+    <div class="ticker-grid" id="ticker-grid">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+  </section>
+
+  <!-- 30-DAY PRICE RANGE -->
+  <section class="section" id="section-historical">
+    <h2 class="section-title">30-Day Price Range (OHLC)</h2>
+    <div class="historical-grid" id="historical-grid">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+  </section>
+
+  <!-- AI SCORE SUMMARY -->
+  <section class="section" id="section-scores">
+    <h2 class="section-title">AI Score — Bull / Bear Assessment</h2>
+    <div class="score-grid" id="score-grid">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+  </section>
+
+  <!-- TECHNICAL -->
+  <section class="section" id="section-tech">
+    <h2 class="section-title">Technical Indicators (Finviz)</h2>
+    <div class="table-wrap">
+      <table class="data-table" id="tech-table">
+        <thead><tr><th>Indicator</th><th>SPY</th><th>GDXU</th><th>SOXX</th></tr></thead>
+        <tbody id="tech-body"><tr><td colspan="4" class="loading-td">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MACRO + SENTIMENT ROW -->
+  <div class="two-col">
+    <section class="section">
+      <h2 class="section-title">Macro Indicators</h2>
+      <div class="macro-grid" id="macro-grid">
+        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+      </div>
+    </section>
+    <section class="section">
+      <h2 class="section-title">Market Sentiment</h2>
+      <div class="sentiment-numbers" id="sentiment-numbers">
+        <table class="sent-num-table">
+          <tr><td>CNN Fear &amp; Greed</td><td class="sn-val" id="sn-fg">--</td></tr>
+          <tr><td>AAII Bullish</td><td class="sn-val bull" id="sn-aaii-bull">--</td></tr>
+          <tr><td>AAII Neutral</td><td class="sn-val" id="sn-aaii-neut">--</td></tr>
+          <tr><td>AAII Bearish</td><td class="sn-val bear" id="sn-aaii-bear">--</td></tr>
+          <tr><td>Bull-Bear Spread</td><td class="sn-val" id="sn-aaii-spread">--</td></tr>
+        </table>
+        <div class="aaii-date" id="aaii-date"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- DARK POOL + BREADTH ROW -->
+  <div class="two-col">
+    <section class="section">
+      <h2 class="section-title">Dark Pool / Off-Exchange Volume</h2>
+      <div class="dp-grid" id="dp-grid">
+        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+      </div>
+    </section>
+    <section class="section">
+      <h2 class="section-title">Market Breadth</h2>
+      <div class="breadth-panel" id="breadth-panel">
+        <div class="breadth-signal" id="breadth-signal">--</div>
+        <div class="breadth-detail" id="breadth-detail"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SCORE BREAKDOWN — FULL WIDTH -->
+  <section class="section" id="section-score-bd">
+    <h2 class="section-title">Indicator Score Breakdown</h2>
+    <div id="score-ticker-tabs" style="margin-bottom:10px;display:flex;gap:6px">
+      <button class="tab-btn active" onclick="switchScoreTicker('SPY')">SPY</button>
+      <button class="tab-btn" onclick="switchScoreTicker('GDXU')">GDXU</button>
+      <button class="tab-btn" onclick="switchScoreTicker('SOXX')">SOXX</button>
+      <button class="tab-btn" onclick="switchScoreTicker('MARKET')">MARKET</button>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="score-table">
+        <thead><tr><th>Indicator</th><th>Value</th><th>Score</th><th>Bear%</th><th>Bull%</th><th>Assessment</th></tr></thead>
+        <tbody id="score-body"><tr><td colspan="6" class="loading-td">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CFTC COT -->
+  <section class="section">
+    <h2 class="section-title">CFTC COT — Institutional Positioning</h2>
+    <div class="table-wrap">
+      <table class="data-table" id="cot-table">
+        <thead><tr><th>Commodity</th><th>Date</th><th>Asset Mgr Net</th><th>Lev Fund Net</th><th>Dealer Net</th><th>Total OI</th></tr></thead>
+        <tbody id="cot-body"><tr><td colspan="6" class="loading-td">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTORS — FULL WIDTH -->
+  <section class="section">
+    <h2 class="section-title">Sector Performance</h2>
+    <div class="sector-list" id="sector-list">
+      <span class="loading-td">Loading...</span>
+    </div>
+  </section>
+
+  <!-- ERROR LOG -->
+  <section class="section" id="section-errors" style="display:none">
+    <h2 class="section-title error-title" onclick="toggleErrors()">Errors <span id="err-count">0</span></h2>
+    <div class="error-log" id="error-log"></div>
+  </section>
+
+</div>
+</div>
+
+<!-- ==================== TAB: MARKDOWN ==================== -->
+<div class="tab-content" id="tab-markdown" style="display:none">
+  <div class="dashboard">
+    <section class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h2 class="section-title" style="margin-bottom:0;border:none;padding-bottom:0">Complete Raw Data — Markdown</h2>
+        <button class="btn-copy" id="btn-copy-md" onclick="copyMarkdown()">Copy Markdown</button>
+      </div>
+      <pre class="markdown-output" id="markdown-output"><span class="loading-td">Loading data...</span></pre>
+    </section>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
